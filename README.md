@@ -2,6 +2,10 @@
 
 Thin API wrapper for the official BitMessage Python client.
 
+## Requirements
+
+Running [BitMessage client](https://github.com/Bitmessage/PyBitmessage) with API enabled.
+
 ## Usage
 
     require 'bitmessage/api_client.rb'
