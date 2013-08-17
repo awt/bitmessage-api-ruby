@@ -7,10 +7,10 @@ module BitMessage
     class Address
       attr_accessor :label, :address, :stream, :enabled
 
-      def initialize hash
-        self.label = hash['label']
+      def initialize hash, label_encoded = false
+        self.label = label_encoded ? Base64.decode64(hash['label']) : hash['label']
         self.address = hash['address']
-        self.stream = hash['stream']
+        self.stream = hash['stream'] if hash.keys.include?('stream')
         self.enabled = hash['enabled']
       end
 
@@ -129,6 +129,13 @@ module BitMessage
       Message.new hash['sentMessage'].first
     end
 
+    def get_sent_messages_by_sender sender
+      json = JSON.parse(@client.call('getSentMessagesBySender', sender))
+      json['sentMessages'].map do |j|
+        Message.new j
+      end
+    end
+
     def trash_message msgid
       @client.call('trashMessage', msgid)
     end
@@ -139,6 +146,26 @@ module BitMessage
 
     def get_status ack_data
       @client.call('getStatus', ack_data)
+    end
+
+    def send_broadcast from, subject, message, encoding = Message::ENCODING_SIMPLE
+      @client.call('sendBroadcast', from, Base64.encode64(subject), Base64.encode64(message), encoding)
+    end
+
+    def add_subscription address, label = ""
+      @client.call('addSubscription', address, Base64.encode64(label))
+    end
+
+    def delete_subscription address
+      @client.call('deleteSubscription', address)
+    end
+
+    def list_subscriptions
+      hash = JSON.parse(@client.call('listSubscriptions'))
+
+      hash['subscriptions'].map do |s|
+        Address.new s, true
+      end
     end
   end
 end
